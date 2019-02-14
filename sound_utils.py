@@ -7,13 +7,22 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import fft
 from scipy import signal
 import soundfile as sf
+from python_speech_features import mfcc
+from python_speech_features import logfbank
+import scipy.io.wavfile as wav
+from tqdm import tqdm
+
+def join_features(mfcc, fbank):
+    features = np.concatenate((mfcc, fbank), axis=1)
+    return features
+
 
 def transform_mfcc(path):
-    label="nathan"
     #plt.figure(figsize=(12, 4))
-    data, sample_rate = sf.read(path)
-    librosa.display.waveplot(data, sr=sample_rate)
-    return np.mean(librosa.feature.mfcc(y=data, sr=sample_rate, n_mfcc=40).T,axis=0)
+    (data, sample_rate) = sf.read(path)   
+    mfcc_feat = mfcc(data, sample_rate)
+    fbank_feat = logfbank(data, sample_rate)
+    return join_features(mfcc_feat, fbank_feat) # time_stamp x n_features
 
 def fft(path): # Fourier
     data, sample_rate = sf.read(path)
@@ -22,17 +31,6 @@ def fft(path): # Fourier
 def spectrogram(path):
     data, sample_rate = sf.read(path)
     frequencies, times, spectrogram = signal.spectrogram(data, sample_rate)
-    plt.pcolormesh(times, frequencies, spectrogram)
-    plt.imshow(spectrogram)
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
-    print(str(frequencies))
-    print("len  frequencies: "+str(len(frequencies)))
-    print(str(times))
-    print(" len times : "+str(len(times)))
-    print(str(spectrogram))
-    print("len spectrogram : "+str(len(spectrogram)))
-    plt.show()
-    
-spectrogram("./Audios/train/train-clean-100/4362/15663/4362-15663-0085.flac")
+    return spectrogram
+
 
